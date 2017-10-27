@@ -35,6 +35,8 @@ public class ThreadUtils
     {
         if ( e instanceof InterruptedException )
         {
+            // 在吞噬interrupted exception时，再次触发异常，标记interrupted status为true
+            // 以便后续可能阻塞的操作可以被正常中断
             Thread.currentThread().interrupt();
             return true;
         }

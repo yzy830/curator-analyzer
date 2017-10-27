@@ -39,6 +39,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * <p>
+ * 连接状态管理器。负责处理连接状态事件的发布。发布工作是一个单线程，因此能够保证事件的输出顺序和输入顺序相同。{@code ConnectionStateManager}
+ * 还可以检测一个{@link ConnectionState#SUSPENDED SUSPENDED}状态的连接是否已经expired(zk的expired时间需要在完成重连之后，才能获得)。
+ * 如果已经expried(通过定时检测获知)，会在ZK底层模拟一个expired事件
+ * </p>
+ * 
+ * <p>
+ * {@code ConnectionStateManager}的状态变更是由{@link CuratorFramework}触发的
+ * </p>
+ * 
  * Used internally to manage connection state
  */
 public class ConnectionStateManager implements Closeable
@@ -64,6 +74,10 @@ public class ConnectionStateManager implements Closeable
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    /**
+     * 在默认情况下，最多能存储25条消息。超过25条，则会丢弃最早的消息。加之，ConnectionStateManager是单线程处理消息的，
+     * 因此连接时间处理事件不能太久，否则可能导致消息丢失
+     */
     private final BlockingQueue<ConnectionState> eventQueue = new ArrayBlockingQueue<ConnectionState>(QUEUE_SIZE);
     private final CuratorFramework client;
     private final int sessionTimeoutMs;
@@ -100,6 +114,7 @@ public class ConnectionStateManager implements Closeable
         {
             threadFactory = ThreadUtils.newThreadFactory("ConnectionStateManager");
         }
+        // 使用single thread executor保证连接事件的顺序性
         service = Executors.newSingleThreadExecutor(threadFactory);
     }
 
@@ -294,6 +309,10 @@ public class ConnectionStateManager implements Closeable
         }
     }
 
+    /**
+     * 在连接断开的情况下，根据ConnectionHandlingPolicy判断连接是否expired。如果expired，则模拟一个expired event。这个模拟是使用
+     * zookeeper的内部方法实现的，不仅仅发送了一个event，而是吧底层socket也关闭了，就如同真正收到了一个expired event事件一样
+     */
     private void checkSessionExpiration()
     {
         if ( (currentConnectionState == ConnectionState.SUSPENDED) && (startOfSuspendedEpoch != 0) )

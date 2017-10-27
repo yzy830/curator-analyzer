@@ -23,6 +23,26 @@ import org.apache.curator.RetryLoop;
 import java.util.concurrent.Callable;
 
 /**
+ * <p>
+ * 连接处理策略。这个类提供了三个方法
+ * <ol>
+ *   <li>
+ *      {@link #getSimulatedSessionExpirationPercent()}：如果这个方法返回的值不为0，则在连接断链的时候，
+ *      curator会启动一个timer，如果在 session_timeout * percent的时间内，没有完成重连。curator会模拟一个
+ *      session expired事件。
+ *   </li>
+ *   
+ *   <li>
+ *      {@link #callWithRetry(CuratorZookeeperClient, Callable)}:这个方法被
+ *          {@link RetryLoop#callWithRetry(CuratorZookeeperClient, Callable)}调用，用于重试
+ *   </li>
+ *   
+ *   <li>
+ *      {@link #checkTimeouts(Callable, long, int, int)}:这个方法的作用还不明确
+ *   </li>
+ * </ol>
+ * </p>
+ * 
  * Abstracts connection handling so that Curator can emulate it's old, pre 3.0.0
  * handling and update to newer handling.
  */

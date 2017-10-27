@@ -24,6 +24,10 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
+/**
+ * 封装了ZooKeeper的创建和销毁。其中{@link #getNegotiatedSessionTimeoutMs()}是连接zookeeper时，和zk协商的session expire时间
+ *
+ */
 class HandleHolder
 {
     private final ZookeeperFactory zookeeperFactory;

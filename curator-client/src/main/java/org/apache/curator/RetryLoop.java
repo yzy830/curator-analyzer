@@ -140,6 +140,10 @@ public class RetryLoop
     }
 
     /**
+     * <p>
+     *   只有zk的特定异常才能够重试，包括CONNECTIONLOSS、OPERATIONTIMEOUT、SESSIONMOVED、SESSIONEXPIRED、NEWCONFIGNOQUORUM(法定人数变化)
+     * <p>
+     * 
      * Utility - return true if the given exception is retry-able
      *
      * @param exception exception to check
@@ -156,6 +160,14 @@ public class RetryLoop
     }
 
     /**
+     * <p>
+     *   如果是可重试异常，并且retry policy允许重试，则会吞噬异常；否则，会传播异常。
+     * </p>
+     * 
+     * <p>
+     *   retry policy在允许重试的情况下，会根据具体的实现睡眠一段时间。
+     * </p>
+     * 
      * Pass any caught exceptions here
      *
      * @param exception the exception

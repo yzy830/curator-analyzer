@@ -18,6 +18,16 @@
  */
 package org.apache.curator;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.curator.connection.ConnectionHandlingPolicy;
 import org.apache.curator.drivers.EventTrace;
 import org.apache.curator.drivers.OperationTrace;
@@ -33,16 +43,24 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Queue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * <p>
+ * {@code ConnectionState}与{@link ConnectionStateManager}功能不同。{@code ConnectionStateManager}支付则处理连接事件的发布；
+ * {@code ConnectionState}负责真实的连接管理和重连工作。
+ * </p>
+ * 
+ * <p>
+ * {@code ConnectionState}在start方法中，连接ZK。并且会监控ZK的连接事件，在expire情况下，会重连
+ * </p>
+ * 
+ * <p>
+ * 从对ZK的测试看，ZK Client在连接Server的时候，是不会超时的，会一直阻塞重试。因此{@code ConnectionState}一旦start，一定能连接成功
+ * </p>
+ * 
+ * @author Administrator
+ *
+ */
 class ConnectionState implements Watcher, Closeable
 {
     private static final int MAX_BACKGROUND_EXCEPTIONS = 10;

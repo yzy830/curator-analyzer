@@ -43,6 +43,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
+ * <p>
+ * 对于ZooKeeper客户端的封装。但是具体的连接维护操作都在{@link ConnectionState}中处理
+ * </p>
+ * 
  * A wrapper around Zookeeper that takes care of some low-level housekeeping
  */
 @SuppressWarnings("UnusedDeclaration")
@@ -51,6 +55,9 @@ public class CuratorZookeeperClient implements Closeable
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final ConnectionState state;
     private final AtomicReference<RetryPolicy> retryPolicy = new AtomicReference<RetryPolicy>();
+    /**
+     * 这个参数用于控制在连接zookeeper时，多长时间超时，并不作用与ZooKeeper的连接超时。在超时检查时，如果超过这个时间，并不会抛出异常
+     */
     private final int connectionTimeoutMs;
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicReference<TracerDriver> tracer = new AtomicReference<TracerDriver>(new DefaultTracerDriver());
@@ -174,6 +181,11 @@ public class CuratorZookeeperClient implements Closeable
     }
 
     /**
+     * <p>
+     *   这个方法调用{@link #internalBlockUntilConnectedOrTimedOut()}，阻塞等待connection或者connection timeout。
+     *   connection timeout的时候，返回false并不会抛出异常
+     * </p>
+     * 
      * This method blocks until the connection to ZK succeeds. Use with caution. The block
      * will timeout after the connection timeout (as passed to the constructor) has elapsed
      *
@@ -368,6 +380,11 @@ public class CuratorZookeeperClient implements Closeable
     }
 
     /**
+     * <p>
+     *   zk的连接是异步的，这个方法会阻塞等待{@link #connectionTimeoutMs}。但是这个方法不保证连接成功，
+     *   如果超时，则会直接返回
+     * </p>
+     * 
      * For internal use only
      *
      * @throws InterruptedException interruptions

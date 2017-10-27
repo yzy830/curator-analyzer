@@ -25,6 +25,10 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
+ * <p>
+ *   抽象获取ZK连接的方法
+ * </p>
+ * 
  * Abstraction that provides the ZooKeeper connection string
  */
 public interface EnsembleProvider extends Closeable
